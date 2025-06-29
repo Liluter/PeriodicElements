@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, inject, ViewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule, NgForm } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -6,6 +6,9 @@ import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatInputModule } from '@angular/material/input';
 import { BehaviorSubject, debounceTime, Observable, of, timeout, timer } from 'rxjs';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatDialog } from '@angular/material/dialog';
+
+import { DialogModal } from '../../dialog/dialog-modal';
 
 export interface PeriodicElement {
   name: string;
@@ -34,7 +37,7 @@ const ELEMENT_DATA: PeriodicElement[] = [
 export class PeriodicTable implements AfterViewInit {
   displayedColumns: string[] = ['position', 'name', 'weight', 'symbol'];
   dataSource = new MatTableDataSource<PeriodicElement>([]);
-
+  dialog = inject(MatDialog)
 
   @ViewChild('filterForm') form!: NgForm
 
@@ -46,7 +49,22 @@ export class PeriodicTable implements AfterViewInit {
       pipe(debounceTime(2000))
       .subscribe(value => {
         this.dataSource.filter = value['searchText']
-
       })
+  }
+  openDialog(row: PeriodicElement) {
+    const dialogRef = this.dialog.open(DialogModal, {
+      data: { name: row.name, position: row.position, symbol: row.symbol, weight: row.weight }
+    })
+    dialogRef.afterClosed().subscribe(result => {
+      if (result !== undefined) {
+        const currentElement = this.dataSource.data.find(element => element.position === row.position)
+        if (currentElement) {
+          currentElement.name = result.name
+          currentElement.symbol = result.symbol
+          currentElement.weight = result.weight
+          currentElement.position = result.position
+        }
+      }
+    })
   }
 }

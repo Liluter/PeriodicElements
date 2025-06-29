@@ -1,0 +1,24 @@
+<h2 mat-dialog-title>Change {{data.name}} element values</h2>
+<mat-dialog-content class="form-fields">
+  <mat-form-field>
+    <mat-label>Position</mat-label>
+    <input matInput [(ngModel)]="position" />
+  </mat-form-field>
+  <mat-form-field>
+    <mat-label>Name</mat-label>
+    <input matInput [(ngModel)]="name" />
+  </mat-form-field>
+  <mat-form-field>
+    <mat-label>Weight</mat-label>
+    <input matInput [(ngModel)]="weight" />
+  </mat-form-field>
+  <mat-form-field>
+    <mat-label>Symbol</mat-label>
+    <input matInput [(ngModel)]="symbol" />
+  </mat-form-field>
+</mat-dialog-content>
+<mat-dialog-actions class="center">
+  <button matButton (click)="onNoClick()">Cancel</button>
+  <button matButton [mat-dialog-close]="{name: name(), symbol: symbol(), weight: weight(), position: position()}"
+    cdkFocusInitial>Apply</button>
+</mat-dialog-actions>
