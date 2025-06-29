@@ -1,12 +1,12 @@
 import { Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { PeriodicTable } from "./periodic-table/periodic-table/periodic-table";
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
+  imports: [PeriodicTable],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })
 export class App {
-  protected title = 'PeriodicElements';
+
 }
