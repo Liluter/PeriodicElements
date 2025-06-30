@@ -1,14 +1,15 @@
-import { AfterViewInit, Component, inject, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, inject, ViewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule, NgForm } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatInputModule } from '@angular/material/input';
-import { BehaviorSubject, debounceTime, Observable, of, timeout, timer } from 'rxjs';
+import { BehaviorSubject, debounceTime, Observable, of, tap, timeout, timer } from 'rxjs';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialog } from '@angular/material/dialog';
 
 import { DialogModal } from '../../dialog/dialog-modal';
+import { PeriodicElementSearchStore } from '../../store/elements-search-store';
 
 export interface PeriodicElement {
   name: string;
@@ -16,39 +17,45 @@ export interface PeriodicElement {
   weight: number;
   symbol: string;
 }
-const ELEMENT_DATA: PeriodicElement[] = [
-  { position: 1, name: 'Hydrogen', weight: 1.0079, symbol: 'H' },
-  { position: 2, name: 'Helium', weight: 4.0026, symbol: 'He' },
-  { position: 3, name: 'Lithium', weight: 6.941, symbol: 'Li' },
-  { position: 4, name: 'Beryllium', weight: 9.0122, symbol: 'Be' },
-  { position: 5, name: 'Boron', weight: 10.811, symbol: 'B' },
-  { position: 6, name: 'Carbon', weight: 12.0107, symbol: 'C' },
-  { position: 7, name: 'Nitrogen', weight: 14.0067, symbol: 'N' },
-  { position: 8, name: 'Oxygen', weight: 15.9994, symbol: 'O' },
-  { position: 9, name: 'Fluorine', weight: 18.9984, symbol: 'F' },
-  { position: 10, name: 'Neon', weight: 20.1797, symbol: 'Ne' },
-];
+// const ELEMENT_DATA: PeriodicElement[] = [
+//   { position: 1, name: 'Hydrogen', weight: 1.0079, symbol: 'H' },
+//   { position: 2, name: 'Helium', weight: 4.0026, symbol: 'He' },
+//   { position: 3, name: 'Lithium', weight: 6.941, symbol: 'Li' },
+//   { position: 4, name: 'Beryllium', weight: 9.0122, symbol: 'Be' },
+//   { position: 5, name: 'Boron', weight: 10.811, symbol: 'B' },
+//   { position: 6, name: 'Carbon', weight: 12.0107, symbol: 'C' },
+//   { position: 7, name: 'Nitrogen', weight: 14.0067, symbol: 'N' },
+//   { position: 8, name: 'Oxygen', weight: 15.9994, symbol: 'O' },
+//   { position: 9, name: 'Fluorine', weight: 18.9984, symbol: 'F' },
+//   { position: 10, name: 'Neon', weight: 20.1797, symbol: 'Ne' },
+// ];
 @Component({
   selector: 'app-periodic-table',
   imports: [MatTableModule, FormsModule, MatFormFieldModule, MatInputModule, MatProgressSpinnerModule],
   templateUrl: './periodic-table.html',
-  styleUrl: './periodic-table.scss'
+  styleUrl: './periodic-table.scss',
+  providers: [PeriodicElementSearchStore],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class PeriodicTable implements AfterViewInit {
   displayedColumns: string[] = ['position', 'name', 'weight', 'symbol'];
   dataSource = new MatTableDataSource<PeriodicElement>([]);
   dialog = inject(MatDialog)
+  store = inject(PeriodicElementSearchStore)
 
   @ViewChild('filterForm') form!: NgForm
 
   ngOnInit() {
-    timer(2000).subscribe(() => this.dataSource.data = ELEMENT_DATA)
+    timer(2000).subscribe(() => this.dataSource.data = this.store.elements())
   }
   ngAfterViewInit() {
     this.form?.control.valueChanges?.
-      pipe(debounceTime(2000))
+      pipe(
+        tap(() => this.store.loading()),
+        debounceTime(2000))
       .subscribe(value => {
-        this.dataSource.filter = value['searchText']
+        this.store.updateQuery(value['searchText'])
+        this.dataSource.filter = this.store.filter().query
       })
   }
   openDialog(row: PeriodicElement) {
