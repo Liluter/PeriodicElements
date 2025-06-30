@@ -52,6 +52,7 @@ export class PeriodicTable implements AfterViewInit {
       data: { name: row.name, position: row.position, symbol: row.symbol, weight: row.weight }
     })
     dialogRef.afterClosed().subscribe(result => {
+      console.log('result ', result)
       if (result !== undefined) {
         this.store.updateElement(result)
         this.dataSource.data = this.store.elements()
