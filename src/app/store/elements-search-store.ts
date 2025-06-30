@@ -36,7 +36,6 @@ export const PeriodicElementSearchStore = signalStore(
       patchState(store, (state) => ({ isLoading: true }))
     },
     updateElement(updatedElement: PeriodicElement) {
-      console.log('upd', updatedElement)
       patchState(store, (state) => {
         const elements = [...state.elements]
         const currentElement = elements.find(element => element.position === updatedElement.position)
@@ -46,7 +45,7 @@ export const PeriodicElementSearchStore = signalStore(
           currentElement.weight = updatedElement.weight
           currentElement.position = updatedElement.position
         }
-        return { elements: [...elements] }
+        return { elements: elements }
       })
     }
   }))
