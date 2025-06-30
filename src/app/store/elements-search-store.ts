@@ -1,6 +1,6 @@
 import { patchState, signalStore, withMethods, withState } from '@ngrx/signals'
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
-import { PeriodicElement } from '../periodic-table/periodic-table/periodic-table'
+import { PeriodicElement } from '../periodic-table/periodic-table'
 import { delay, pipe, tap } from 'rxjs';
 
 
@@ -34,6 +34,19 @@ export const PeriodicElementSearchStore = signalStore(
     },
     loading(): void {
       patchState(store, (state) => ({ isLoading: true }))
+    },
+    updateElement(updatedElement: PeriodicElement) {
+      patchState(store, (state) => {
+        const elements = [...state.elements]
+        const currentElement = elements.find(element => element.position === updatedElement.position)
+        if (currentElement) {
+          currentElement.name = updatedElement.name
+          currentElement.symbol = updatedElement.symbol
+          currentElement.weight = updatedElement.weight
+          currentElement.position = updatedElement.position
+        }
+        return { elements: [...elements] }
+      })
     }
   }))
 )
