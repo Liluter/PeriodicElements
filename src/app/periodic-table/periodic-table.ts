@@ -1,15 +1,14 @@
-import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, ViewChild } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, effect, inject, ViewChild } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatInputModule } from '@angular/material/input';
-import { BehaviorSubject, debounceTime, Observable, of, tap, timeout, timer } from 'rxjs';
+import { debounceTime, tap } from 'rxjs';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialog } from '@angular/material/dialog';
-
 import { DialogModal } from '../dialog/dialog-modal';
 import { PeriodicElementSearchStore } from '../store/elements-search-store';
+
 
 export interface PeriodicElement {
   name: string;
@@ -27,15 +26,19 @@ export interface PeriodicElement {
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class PeriodicTable implements AfterViewInit {
-  displayedColumns: string[] = ['position', 'name', 'weight', 'symbol'];
-  dataSource = new MatTableDataSource<PeriodicElement>([]);
-  dialog = inject(MatDialog)
-  store = inject(PeriodicElementSearchStore)
-  changeRef = inject(ChangeDetectorRef)
+  protected displayedColumns: string[] = ['position', 'name', 'weight', 'symbol'];
+  readonly dataSource = new MatTableDataSource<PeriodicElement>([]);
+  readonly dialog = inject(MatDialog)
+  readonly store = inject(PeriodicElementSearchStore)
+  readonly changeRef = inject(ChangeDetectorRef)
   @ViewChild('filterForm') form!: NgForm
 
-  ngOnInit() {
-    timer(2000).subscribe(() => this.dataSource.data = this.store.elements())
+
+  constructor() {
+    effect(() => {
+      this.dataSource.data = this.store.elements();
+      this.changeRef.markForCheck()
+    });
   }
   ngAfterViewInit() {
     this.form?.control.valueChanges?.
@@ -47,15 +50,11 @@ export class PeriodicTable implements AfterViewInit {
         this.dataSource.filter = this.store.filter().query
       })
   }
-  openDialog(row: PeriodicElement) {
-    const dialogRef = this.dialog.open(DialogModal, {
-      data: { name: row.name, position: row.position, symbol: row.symbol, weight: row.weight }
-    })
-    dialogRef.afterClosed().subscribe(result => {
+  openDialog(element: PeriodicElement) {
+    const dialogRef = this.dialog.open(DialogModal, { data: element })
+    dialogRef.afterClosed().subscribe((result: PeriodicElement) => {
       if (result !== undefined) {
         this.store.updateElement(result)
-        this.dataSource.data = this.store.elements()
-        this.changeRef.markForCheck()
       }
     })
   }

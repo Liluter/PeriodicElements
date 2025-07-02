@@ -2,19 +2,18 @@
 <mat-dialog-content class="form-fields">
   <mat-form-field>
     <mat-label>Name</mat-label>
-    <input matInput [(ngModel)]="name" />
+    <input matInput [(ngModel)]="modelData().name" />
   </mat-form-field>
   <mat-form-field>
     <mat-label>Weight</mat-label>
-    <input matInput [(ngModel)]="weight" />
+    <input matInput [(ngModel)]="modelData().weight" />
   </mat-form-field>
   <mat-form-field>
     <mat-label>Symbol</mat-label>
-    <input matInput [(ngModel)]="symbol" />
+    <input matInput [(ngModel)]="modelData().symbol" />
   </mat-form-field>
 </mat-dialog-content>
 <mat-dialog-actions class="center">
   <button matButton (click)="onNoClick()">Cancel</button>
-  <button matButton [mat-dialog-close]="{name: name(), symbol: symbol(), weight: weight(), position: position()}"
-    cdkFocusInitial>Apply</button>
+  <button matButton [mat-dialog-close]="modelData()" cdkFocusInitial>Apply</button>
 </mat-dialog-actions>
