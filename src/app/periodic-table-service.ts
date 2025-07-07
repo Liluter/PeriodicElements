@@ -14,7 +14,7 @@ import { DialogModal } from './dialog/dialog-modal';
 export class PeriodicTableService {
   private readonly destroyRef = inject(DestroyRef)
   private readonly store = inject(PeriodicElementSearchStore)
-  private dialog = inject(MatDialog)
+  private readonly dialog = inject(MatDialog)
   connectFormToSearch(form: NgForm, dataSource: MatTableDataSource<any>) {
     form.control.valueChanges?.pipe(
       tap(() => this.store.loading()),
