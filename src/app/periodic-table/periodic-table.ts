@@ -1,13 +1,14 @@
-import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, effect, inject, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, effect, inject, ViewChild } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatInputModule } from '@angular/material/input';
-import { debounceTime, tap } from 'rxjs';
+import { debounceTime, takeUntil, tap } from 'rxjs';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialog } from '@angular/material/dialog';
 import { DialogModal } from '../dialog/dialog-modal';
 import { PeriodicElementSearchStore } from '../store/elements-search-store';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 
 export interface PeriodicElement {
@@ -31,7 +32,8 @@ export class PeriodicTable implements AfterViewInit {
   readonly dialog = inject(MatDialog)
   readonly store = inject(PeriodicElementSearchStore)
   readonly changeRef = inject(ChangeDetectorRef)
-  @ViewChild('filterForm') form!: NgForm
+  readonly destroyRef = inject(DestroyRef)
+  @ViewChild('filterForm') readonly form!: NgForm
 
 
   constructor() {
@@ -43,8 +45,10 @@ export class PeriodicTable implements AfterViewInit {
   ngAfterViewInit() {
     this.form?.control.valueChanges?.
       pipe(
+        takeUntilDestroyed(this.destroyRef),
         tap(() => this.store.loading()),
-        debounceTime(2000))
+        debounceTime(2000),
+      )
       .subscribe(value => {
         this.store.updateQuery(value['searchText'])
         this.dataSource.filter = this.store.filter().query
