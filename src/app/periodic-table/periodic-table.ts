@@ -9,6 +9,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { DialogModal } from '../dialog/dialog-modal';
 import { PeriodicElementSearchStore } from '../store/elements-search-store';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { PeriodicTableService } from '../periodic-table-service';
 
 
 export interface PeriodicElement {
@@ -23,18 +24,17 @@ export interface PeriodicElement {
   imports: [MatTableModule, FormsModule, MatFormFieldModule, MatInputModule, MatProgressSpinnerModule],
   templateUrl: './periodic-table.html',
   styleUrl: './periodic-table.scss',
-  providers: [PeriodicElementSearchStore],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class PeriodicTable implements AfterViewInit {
   protected displayedColumns: string[] = ['position', 'name', 'weight', 'symbol'];
+  readonly tableService = inject(PeriodicTableService)
   readonly dataSource = new MatTableDataSource<PeriodicElement>([]);
   readonly dialog = inject(MatDialog)
   readonly store = inject(PeriodicElementSearchStore)
   readonly changeRef = inject(ChangeDetectorRef)
   readonly destroyRef = inject(DestroyRef)
   @ViewChild('filterForm') readonly form!: NgForm
-
 
   constructor() {
     effect(() => {
@@ -43,23 +43,9 @@ export class PeriodicTable implements AfterViewInit {
     });
   }
   ngAfterViewInit() {
-    this.form?.control.valueChanges?.
-      pipe(
-        takeUntilDestroyed(this.destroyRef),
-        tap(() => this.store.loading()),
-        debounceTime(2000),
-      )
-      .subscribe(value => {
-        this.store.updateQuery(value['searchText'])
-        this.dataSource.filter = this.store.filter().query
-      })
+    this.tableService.connectFormToSearch(this.form, this.dataSource)
   }
   openDialog(element: PeriodicElement) {
-    const dialogRef = this.dialog.open(DialogModal, { data: element })
-    dialogRef.afterClosed().subscribe((result: PeriodicElement) => {
-      if (result !== undefined) {
-        this.store.updateElement(result)
-      }
-    })
+    this.tableService.openDialog(element)
   }
 }

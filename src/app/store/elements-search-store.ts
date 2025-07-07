@@ -29,6 +29,7 @@ const initialElements: PeriodicElement[] = [
   { position: 10, name: 'Neon', weight: 20.1797, symbol: 'Ne' },
 ]
 export const PeriodicElementSearchStore = signalStore(
+  { providedIn: 'root' },
   withState(() => initialState),
   withMethods((store) => ({
     updateQuery(query: string): void {
