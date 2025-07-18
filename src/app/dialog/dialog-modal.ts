@@ -22,7 +22,7 @@ import { PeriodicElement } from '../periodic-table/periodic-table';
 export class DialogModal {
   readonly dialogRef = inject(MatDialogRef<DialogModal>)
   readonly data: PeriodicElement = inject<PeriodicElement>(MAT_DIALOG_DATA)
-  readonly modelData = model(this.data)
+  readonly modelData = model({ ...this.data })
 
   onNoClick(): void {
     this.dialogRef.close()
